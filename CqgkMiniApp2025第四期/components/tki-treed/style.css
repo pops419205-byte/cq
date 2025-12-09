@@ -9,24 +9,21 @@
   opacity: 0;
   transition: all 0.3s ease;
   visibility: hidden;
-  pointer-events: none;
 }
 .tki-tree-mask.show {
   visibility: visible;
   opacity: 1;
-  pointer-events: auto;
 }
 .tki-tree-cnt {
   position: fixed;
-  top: 160rpx;
+  top: 0rpx;
   right: 0rpx;
   bottom: 0rpx;
   left: 0rpx;
   z-index: 9999;
-  background-color: #fff;
+  top: 160rpx;
   transition: all 0.3s ease;
   transform: translateY(100%);
-  pointer-events: auto;
 }
 .tki-tree-cnt.show {
   transform: translateY(0);
@@ -52,16 +49,16 @@
 }
 .tki-tree-view {
   position: absolute;
-  top: 72rpx;
+  top: 0rpx;
   right: 0rpx;
   bottom: 0rpx;
   left: 0rpx;
+  top: 150rpx;
   background-color: #fff;
   padding-top: 20rpx;
   padding-right: 20rpx;
   padding-bottom: 20rpx;
   padding-left: 20rpx;
-  pointer-events: auto;
 }
 .tki-tree-view-sc {
   height: 100%;
@@ -74,8 +71,8 @@
   font-size: 26rpx;
   color: #757575;
   line-height: 1;
-  height: 80rpx;
-  opacity: 1;
+  height: 0;
+  opacity: 0;
   transition: 0.2s;
   position: relative;
   overflow: hidden;

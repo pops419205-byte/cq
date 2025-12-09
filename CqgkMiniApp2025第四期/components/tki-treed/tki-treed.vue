@@ -7,19 +7,18 @@
 				<view class="tki-tree-bar-title" :style="{'color':titleColor}">{{title}}</view>
 				<view class="tki-tree-bar-confirm" :style="{'color':confirmColor}" hover-class="hover-c" @tap="_confirm">确定</view>
 			</view>
-			<!-- 系列切换器已移除，因为数据已经按产品分类过滤，不需要再按系列切换 -->
+			<u-subsection :list="listaa" fontSize="15" height="50" :current="curindex" @change="sectionChange"></u-subsection>
 			<view class="tki-tree-view">
 				<scroll-view class="tki-tree-view-sc" :scroll-y="true">
 					<block v-for="(item, index) in treeList" :key="index">
-						<view class="tki-tree-item show" :style="{
+						<view class="tki-tree-item" :style="[{
 							paddingLeft: item.rank*15 + 'px',
 							zIndex: item.rank*-1 +50,
-							height: '80rpx',
-							opacity: 1,
-							display: 'flex'
-						}"
+							height: (item.itemType == curName || item.itemType =='A')?'80rpx':'0'
+						}]"
 						 :class="{
 							border: border === true,
+							show: item.show,
 							last: item.lastRank,
 							showchild: item.showChild,
 							open: item.open,
@@ -115,88 +114,21 @@
 				showTree: false,
 				treeList: [],
 				selectIndex: -1,
-				listaa: [], //状态列表，根据数据动态生成
+				listaa: ['H系列', 'P系列','G系列'], //状态列表
 				curindex: 0, //当前状态
-				curName: '', //当前状态
+				curName: 'H', //当前状态
 			}
 		},
 		computed: {},
 		methods: {
-			/**
-			 * 根据数据动态生成系列列表
-			 */
-			_generateSeriesList(range) {
-				if (!range || !Array.isArray(range) || range.length === 0) {
-					this.listaa = ['全部'];
-					this.curName = 'A';
-					this.curindex = 0;
-					return;
-				}
-				
-				// 收集所有唯一的 itemType（H、P、G、A等）
-				const seriesSet = new Set();
-				const seriesMap = {
-					'H': 'H系列',
-					'P': 'P系列',
-					'G': 'G系列',
-					'A': '机械产品'
-				};
-				
-				// 递归收集所有 itemType
-				const collectItemTypes = (items) => {
-					items.forEach(item => {
-						if (item.itemType) {
-							seriesSet.add(item.itemType);
-						}
-						if (item.children && Array.isArray(item.children)) {
-							collectItemTypes(item.children);
-						}
-					});
-				};
-				
-				collectItemTypes(range);
-				
-				// 生成系列列表，按 H、P、G、A 的顺序
-				const seriesOrder = ['H', 'P', 'G', 'A'];
-				this.listaa = seriesOrder
-					.filter(type => seriesSet.has(type))
-					.map(type => seriesMap[type] || `${type}系列`);
-				
-				// 如果没有找到任何系列，至少显示一个默认的
-				if (this.listaa.length === 0) {
-					this.listaa = ['全部'];
-					this.curName = 'A';
-				}
-				
-				// 设置默认选中的系列
-				if (this.listaa.length > 0) {
-					this.curindex = 0;
-					// 根据第一个系列名称反推 itemType
-					const firstSeries = this.listaa[0];
-					if (firstSeries === 'H系列') this.curName = 'H';
-					else if (firstSeries === 'P系列') this.curName = 'P';
-					else if (firstSeries === 'G系列') this.curName = 'G';
-					else if (firstSeries === '机械产品') this.curName = 'A';
-					else if (firstSeries === '全部') this.curName = 'A';
-					else this.curName = seriesOrder.find(type => seriesSet.has(type)) || 'A';
-				} else {
-					this.curName = 'A';
-				}
-				
-				console.log('生成的系列列表:', this.listaa);
-				console.log('当前选中的系列:', this.curName);
-			},
 			sectionChange(index) {
 				if (this.curindex == index) {
 					return
 				}
 				this.curindex = index
-				// 根据系列名称反推 itemType
-				const seriesName = this.listaa[index];
-				if (seriesName === 'H系列') this.curName = 'H';
-				else if (seriesName === 'P系列') this.curName = 'P';
-				else if (seriesName === 'G系列') this.curName = 'G';
-				else if (seriesName === '机械产品') this.curName = 'A';
+				if(this.curindex == 0)this.curName = 'H'
+				if(this.curindex == 1)this.curName = 'P'
+				if(this.curindex == 2)this.curName = 'G'
 			},
 			_show() {
 				this.showTree = true
@@ -244,9 +176,9 @@
 						parentId, // 父级id数组
 						parents, // 父级id数组
 						rank, // 层级
-						showChild: rank === 0 ? true : false, // 第一级默认展开子级
+						showChild: false, //子级是否显示
 						open: true, //是否打开
-						show: true, // 写死显示，所有项目都显示
+						show: true, // 自身是否显示
 						hideArr: [],
 						orChecked: item.checked ? item.checked : false,
 						checked: item.checked ? item.checked : false,
@@ -271,28 +203,7 @@
 			},
 			// 处理默认选择
 			_defaultSelect() {
-				// 写死显示所有项目，不进行任何过滤
 				this.treeList.forEach((v, i) => {
-					v.show = true; // 所有项目都显示
-					// 第一级项目默认展开子级
-					if (v.rank === 0) {
-						v.showChild = true;
-						v.open = true;
-						// 显示所有第一级的子级
-						this.treeList.forEach((v2, i2) => {
-							if (v2.parentId.length === 1 && v2.parentId[0] === v.id) {
-								v2.show = true;
-							}
-						})
-					}
-					// 显示所有子级项目
-					if (v.parentId.length > 0) {
-						// 如果父级是展开的，子级也显示
-						const parent = this.treeList.find(p => p.id === v.parentId[v.parentId.length - 1]);
-						if (parent && parent.showChild) {
-							v.show = true;
-						}
-					}
 					if (v.checked) {
 						this.treeList.forEach((v2, i2) => {
 							if (v.parentId.toString().indexOf(v2.parentId.toString()) >= 0) {
@@ -305,10 +216,6 @@
 						})
 					}
 				})
-				// 强制所有项目显示
-				this.treeList.forEach((v, i) => {
-					v.show = true;
-				});
 			},
 			// 点击
 			_treeItemTap(item, index) {
@@ -394,25 +301,10 @@
 				})
 			},
 			_initTree(range = this.range){
-				// 不再需要生成系列列表，因为数据已经按产品分类过滤
-				this.listaa = [];
-				this.curName = '';
 				this.treeList = [];
-				console.log('========== 初始化树形数据 ==========');
-				console.log('传入的range数据:', range);
-				console.log('range长度:', range ? range.length : 0);
 				this._renderTreeList(range);
-				console.log('渲染后的treeList长度:', this.treeList.length);
-				console.log('渲染后的treeList:', this.treeList);
 				this.$nextTick(() => {
-					this._defaultSelect(range);
-					console.log('默认选择后的treeList长度:', this.treeList.length);
-					// 再次确保所有项目都显示
-					this.treeList.forEach((v, i) => {
-						v.show = true;
-					});
-					console.log('最终treeList:', this.treeList);
-					console.log('================================');
+					this._defaultSelect(range)
 				})
 			}
 		},
