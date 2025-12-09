@@ -59,14 +59,6 @@
 				<span>服务费明细：</span> <span style="font-size: 14px;color: red;">单价为空时 可手动填写金额</span>
 			</view>
 		</view>
-		<!-- 产品分类选择 -->
-		<view style="padding: 10px 20px;margin-bottom: 10px;">
-			<uni-forms-item label="产品分类" required>
-				<view @click="showCostTypePicker = true" class="w100">
-					<uni-easyinput v-model="costTypeName" disabled placeholder="请选择产品分类" />
-				</view>
-			</uni-forms-item>
-		</view>
 		<view class=""
 			style="display: flex;justify-content: flex-end;color: gray;padding: 0 15px 0 0;margin-bottom: 10px;">
 			<text>单位: 元</text>
@@ -139,11 +131,8 @@
 			style="display: flex;justify-content: center;align-items: center;width: 150px;height: 40px;color: #fff;background-color: #169BD5;margin: 0 auto;border-radius: 10px;">
 			确认提交
 		</view>
-		<!-- 产品分类选择器 -->
-		<u-picker :show="showCostTypePicker" :closeOnClickOverlay='true' @cancel='showCostTypePicker=false' @close='showCostTypePicker=false'
-			@confirm='costTypeConfirm' :columns="costTypeList" keyName="name"></u-picker>
 		<!-- 费用选择框 -->
-		<tki-treed ref="tkitree" :selectParent='true' :range="filteredPriceList" rangeKey="FREPAIRITEM" :multiple='true'
+		<tki-treed ref="tkitree" :selectParent='true' :range="priceList" rangeKey="FREPAIRITEM" :multiple='true'
 			:foldAll="true" @confirm='treeconfirm' confirmColor="#4e8af7" />
 
 		<u-modal :show="showModal" :title="title" @confirm="confirmModel" ref="uModal">
@@ -175,7 +164,7 @@
 		components: {
 			tree,
 		},
-			data() {
+		data() {
 			return {
 				showModel: false,
 				tag: 1,
@@ -196,20 +185,7 @@
 					// },
 
 				], //服务费列表
-				priceList: [], //服务费列表（全部）
-				filteredPriceList: [], //过滤后的服务费列表
-				costType: '', //产品分类值：'1'=机械产品，'2'=共轨产品
-				costTypeName: '', //产品分类显示名称
-				showCostTypePicker: false, //显示分类选择器
-				costTypeList: [
-					[{
-						name: '机械产品',
-						value: '1'
-					}, {
-						name: '共轨产品',
-						value: '2'
-					}]
-				],
+				priceList: [], //服务费列表
 				FBillNo: '', //订单号
 				FID: '', //订单号
 				fileList7: [], // 图片
@@ -238,43 +214,31 @@
 				serviceid: uni.getStorageSync('Fnumber')
 			})
 			this.priceList = result.data.map(item => {
-				let str = item.FREPAIRITEM || '';
+				let str = item.FREPAIRITEM;
 				let arr = str.split("-");
 				let itemType = arr[0];
-				
-				// 优先使用后端返回的分类字段
-				// 后端应该提供 FCOSTTYPE 字段：'1'=机械产品，'2'=共轨产品
-				if (item.FCOSTTYPE) {
-					item.costType = item.FCOSTTYPE;
-				} else {
-					// 判断逻辑：只有明确标识为"机械产品"的才是机械产品，其他都是共轨产品
-					// 检查 FREPAIRITEM 是否以"机械产品"开头
-					if (str.startsWith('机械产品') || str.indexOf('机械产品') === 0) {
-						item.costType = '1'; // 机械产品
-					} else {
-						// 其他所有情况都是共轨产品
-						item.costType = '2'; // 共轨产品
-					}
-				}
-				
-				// 保留原有的itemType用于兼容（H、P、G系列）
 				if (itemType !== 'H' && itemType !== 'P' && itemType !== 'G') {
 					itemType = 'A'
 				}
 				item.itemType = itemType;
+				//默认选中
+				// if(item.FID == 114475 || item.FID == 114476 || item.FID == 114477){
+				// 		item.checked = true
+				// 		let FQTY = 1 ;
+				// 		if(item.FID == 114477)FQTY = result2.data.FDISTANCE
+				// 		this.service.push({
+				// 			name: item.FREPAIRITEM,
+				// 			mark: item.FREMARK,  
+				// 			newMark: '',
+				// 			FQTY:FQTY,
+				// 			price: item.FPROPOSALPRICE,
+				// 			FAMOUNT: parseFloat(item.FPROPOSALPRICE)*FQTY, 
+				// 			isDis: false,
+				// 			FID: item.FID
+				// 		})
+				// }
 				return item
 			})
-			
-			// 打印分类统计
-			const mechanicalCount = this.priceList.filter(item => item.costType === '1').length;
-			const commonRailCount = this.priceList.filter(item => item.costType === '2').length;
-			console.log('========== 费用项目分类统计 ==========')
-			console.log('机械产品数量:', mechanicalCount)
-			console.log('共轨产品数量:', commonRailCount)
-			console.log('总数量:', this.priceList.length)
-			console.log('====================================')
-			// 初始时不显示列表，需要先选择产品分类
-			this.filteredPriceList = [];
 			console.log('this.priceList', this.priceList)
 		},
 		methods: {
@@ -379,35 +343,9 @@
 				})
 			},
 			/**
-			 * 产品分类选择确认
-			 */
-			costTypeConfirm(e) {
-				this.costType = e.value[0].value;
-				this.costTypeName = e.value[0].name;
-				// 根据选择的分类过滤费用项目列表
-				this.filteredPriceList = this.priceList.filter(item => {
-					return item.costType === this.costType;
-				});
-				console.log('========== 产品分类选择 ==========')
-				console.log('产品分类:', this.costTypeName, '分类值:', this.costType)
-				console.log('全部费用项目数量:', this.priceList.length)
-				console.log('过滤后的费用项目数量:', this.filteredPriceList.length)
-				console.log('过滤后的费用项目列表:', this.filteredPriceList)
-				console.log('================================')
-				this.showCostTypePicker = false;
-			},
-			/**
 			 * 添加服务费行
 			 */
 			addService() {
-				// 必须先选择产品分类
-				if (!this.costType) {
-					uni.showToast({
-						icon: 'none',
-						title: '请先选择产品分类'
-					})
-					return
-				}
 				this.$refs.tkitree._show()
 			},
 			/**
@@ -462,15 +400,6 @@
 			async submit() {
 
 				console.log(this.service, this.total)
-				// 检查是否选择了产品分类
-				if (!this.costType) {
-					uni.showToast({
-						icon: 'none',
-						title: '请先选择产品分类！'
-					})
-					this.showModel = false
-					return
-				}
 				if (this.total <= 0) {
 					uni.showToast({
 						icon: 'none',
@@ -491,7 +420,6 @@
 							FQTY: item.FQTY,
 							price: item.FAMOUNT,
 							FAMOUNT: FAMOUNT,
-							FCOSTTYPE: this.costType, // 添加产品分类：'1'=机械产品，'2'=共轨产品
 						}
 					})
 					if (arr.length == 0 || this.fileList7.length <= 0) {
@@ -634,9 +562,6 @@
 </script>
 
 <style scoped lang="scss">
-	.w100 {
-		width: 100%;
-	}
 	.page {
 		padding-bottom: 50px;
 	}
