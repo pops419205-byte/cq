@@ -1,0 +1,72 @@
+// 主题颜色
+$color-main: #4eaaed;
+$color-theme: #FAFAFA;
+$color-primary: #007aff;//标准按钮颜色
+$color-success: #4cd964;
+$color-warning: #f0ad4e;
+$color-hunting: #FECA01;
+$color-error: #dd524d;
+$color-custom: #4A5061;
+$color-link: #0273F1;
+$color-white: #fff;
+$color-grey: rgb(127,127,127); // 辅助色
+$color-black: rgb(0,0,0);//标准文本颜色
+$color-modal: #6B6B6B;//模态框文字颜色
+
+
+/* 
+	大标题 36
+	标题 32
+	内容 28
+	辅助 24/20
+ */
+$fons-size-a: 18rpx;
+$font-size-s: 22rpx;
+$font-size-sm: 24rpx;
+$font-size-m: 28rpx;
+$font-size-l: 36rpx;
+$font-size-xl: 56rpx;
+
+// 头像大小
+$avatar-size-s: 36rpx;
+$avatar-size-sm: 48rpx;
+$avatar-size-m: 72rpx;
+$avatar-size-l: 96rpx;
+$avatar-size-xl: 120rpx;
+$avatar-size-xxl: 144rpx;
+
+// 圆角大小
+$radius-size-s: 8rpx;
+$radius-size-sm: 12rpx;
+$radius-size-m: 16rpx;
+$radius-size-l: 20rpx;
+$radius-size-xl: 24rpx;
+$radius-size-xxl: 28rpx;
+$radius-size-circle: 999rpx;
+
+//按钮大小
+$button-size-width-s: 133rpx;
+$button-size-height-s: 50rpx;
+$button-size-width-sm: 233rpx;
+$button-size-height-sm: 63rpx;
+
+//间隔值
+$space-size-a: 5rpx;
+$space-size-s: 10rpx;
+$space-size-sm: 15rpx;
+$space-size-m: 25rpx;
+$space-size-l: 35rpx;
+$space-size-xl: 50rpx;
+
+//线值
+$line-size-s: 1px;
+$line-size-sm: 2px;
+$line-size-m: 3px;
+$line-size-l: 5px;
+
+//宽度
+$width-size-s: 50rpx;
+$width-size-sm: 100rpx;
+$width-size-m: 200rpx;
+$width-size-l: 500rpx;
+$width-size-xl: 750rpx;
