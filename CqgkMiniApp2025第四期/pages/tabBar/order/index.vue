@@ -1046,221 +1046,308 @@
 			 * 提交报修单
 			 */
 			async commit() {
-
-				this.show5 = false;
-				if (this.isUpdate) {
-					return
-				}
-				let flag = true
-				this.$refs.choosecmp.forEach(item => {
-					if (!item.formData.FPRODUCTNAME) {
-						flag = false
-					}
-				})
-				let flag4 = true
-				if (this.status == 'Service_station') {
-					this.$refs.choosecmp.forEach(item => {
-						if (!item.formData.FORDERNO) {
-							flag4 = false
-						}
-					})
-				}
-				if (this.documentType == 'B') {
-
-					let text = '';
-					if (!flag) {
-						text = '请选择产品名称'
-					}
-
-					if (!flag4) {
-						text = '请输入订货号'
-					}
-
-					if (!this.formData.F_USERREMAERK) {
-						text = '请填写联系人'
-					}
-					if (!this.formData.FDRIVERPHONE) {
-						text = '请填写联系人电话'
-					}
-
-					if (this.formData.FPURCHASEDATA == '' && this.customInfo == 'after') {
-						text = '请填写购买日期'
-					}
-					if (this.formData.FVEHICLEPURPOSE == '') {
-						text = '请选择车辆用途'
-					}
-					if (this.formData.FERRDATE == '') {
-						text = '请填写故障时间'
-					}
-					if (this.formData.FGUZHANINFO == '') {
-						text = '请填写故障描述'
-					}
-					// && this.customInfo == 'after'
-					if (this.previewData.length == 0) {
-						text = '请上传购买凭证'
-						this.previewUrl.splice(0)
-						this.fileList6.splice(0)
-					}
-
-					if (this.radiovalue1 == '上门维修' && this.formData.FREPAIRSITE == '') {
-						text = '请填写故障地点'
-					}
-					let text2 = text
-					if (this.status == 'Service_station') {
-						if (this.serviceCheck() !== '') {
-							text = this.serviceCheck()
-						}
-						if (this.F_tesu_text == '') {
-							text = '请填写厂家信息'
-						}
-					}
-					if (this.Fproductclass == '') {
-						text = '请选择使用类别'
-					}
-					if (this.producIndex !== '2' && !this.formData.FPOWERNUMBER && this.status == 'Service_station') {
-						text = '请输入发动机编号'
-					}
-					//售后 其他类别时，必填
-					if (!this.formData.F_DRIVINGCOM_H && this.customInfo == 'after' && this.producIndex !== '1' && this.producIndex !== '2') {
-						text = this.carType > 1 ? '请填写运转时长' : '请填写行驶里程'
-					}
-					// 配件或零售发动机时：显示行驶里程(carType<=1)则必填，显示运转时长(carType>1)则非必填
-					if (!this.formData.F_DRIVINGCOM_H && this.customInfo == 'after' && (this.producIndex == '1' || this.producIndex == '2') && this.carType <= 1) {
-						text = '请填写行驶里程'
-					}
-					// 数据验证：其他类别时，验证数据合法性
-					if ((parseFloat(this.formData.F_DRIVINGCOM_H).toString() == "NaN" || !this.formData
-							.F_DRIVINGCOM_H) && this.customInfo == 'after' && this.producIndex !== '1' && this.producIndex !== '2') {
-						uni.showToast({
-							icon: 'none',
-							title: this.carType > 1 ? '运转时长' : '行驶里程' + '，数据非法或为空！'
-						})
-						return
-					}
-					// 数据验证：配件或零售发动机且显示行驶里程时，验证数据合法性
-					if ((parseFloat(this.formData.F_DRIVINGCOM_H).toString() == "NaN" || !this.formData
-							.F_DRIVINGCOM_H) && this.customInfo == 'after' && (this.producIndex == '1' || this.producIndex == '2') && this.carType <= 1) {
-						uni.showToast({
-							icon: 'none',
-							title: '行驶里程，数据非法或为空！'
-						})
-						return
-					}
-
-					if (this.FRCHECKHOME !== '0' && this.FRCHECKHOME !== '1') { //'到服务站维修'
-						text = '请选择服务方式'
-					}
-					if (text !== '') {
-						uni.showToast({
-							icon: 'none',
-							title: text
-						})
-						this.show5 = false
-						return
-					}
-
-				}
-				const arr = this.getprodArr();
-				console.log("报修提交数据，arr--", arr)
-
-				if (arr[1] > 0) {
-					this.show5 = false
-					return //判断产品信息是否完整
-				}
-
-				if (this.FRCHECKHOME == '0') { //'到服务站维修'
-					this.formData.FREPAIRSITE = '';
-				}
-
-				if (this.status == 'Customer') {
-					if (this.FRCHECKHOME == '1') { //'上门维修'  
-						this.formData.FSERVICESTATION = '';
-						this.FSERVICESTATIONnumber = '';
-					}
-				}
-
-				// return;
-				uni.showLoading({
-					title: '正在保存'
-				});
-				let obj = {
-					...this.formData
-				}
-				obj.FileFIDS = [
-				    ...this.prodImg,      // 产品图片
-				    ...this.previewData,  // 购买凭证
-				    ...this.errImg,       // 故障图片
-				    ...this.video         // 故障视频
-				]
-				console.log('提交的 FileFIDS:', obj.FileFIDS)
-				obj.FSERVICESTATION = this.FSERVICESTATIONnumber
-				obj.FVEHICLEPURPOSE = this.SelectAssistantDataListnumber
-				obj.FileFIDS.splice(0)
-
-				obj.FileFIDS.push(...this.prodImg, ...this.previewData, ...this.errImg.concat(this.video))
-
-				let type = uni.getStorageSync('customertype')
-				obj.Fdriver = ''
-				if (type == 'Customer') {
-					let Fdriver = uni.getStorageSync('userNumber')
-					obj.Fdriver = Fdriver
-				}
-
-				obj.FdownSALE = this.customInfo == 'after' ? '2' : '1'
-				obj.entry = arr[0]
-				if (this.documentType == 'A') {
-					obj.FDocumentStatus = 'A'
-				}
-				if (this.documentType == 'B') {
-					obj.FDocumentStatus = 'B'
-				}
-
-				let documentType = this.documentType
-				obj.Fproductclass = this.producIndex + ''
-				obj.F_tesu_text = this.F_tesu_text
-				obj.FRCHECKHOME = this.FRCHECKHOME
-				obj.FBillNo = ''
-				this.isUpdate = true
-
-
-				// console.log(1112,this.producIndex,obj)
-				// return
-
-				const res = await this.$Recipe.InsertREPAIRREPORT(obj)
-				this.isUpdate = false
-				uni.hideLoading()
-
-				if (res?.msg == 'Success') {
-					this.reset()
-					uni.switchTab({
-						url: '/pages/tabBar/report/index',
-						success() {
-							if (documentType == 'A') {
-								uni.showToast({
-									icon: 'none',
-									title: '保存报修单成功'
-								})
-							} else {
-								uni.showToast({
-									icon: 'none',
-									title: '提交报修单成功'
-								})
-							}
-						}
-					})
-				} else {
-					if (documentType == 'A') {
-						uni.showToast({
-							icon: 'none',
-							title: '保存报修单失败,请重试'
-						})
-					} else {
-						uni.showToast({
-							icon: 'none',
-							title: '提交报修单失败,请重试'
-						})
-					}
-				}
+			  
+			  // ========== 调试信息开始：附件上传验证 ==========
+			  console.log('=== 附件上传验证调试信息 ===');
+			  console.log('1. 文件上传到服务器验证:');
+			  
+			  // 验证每个文件数组的FID状态
+			  const checkFileUploadStatus = (name, fileList, storageArray) => {
+			    console.log(`【${name}】验证结果:`);
+			    console.log(`- 本地文件列表: ${fileList.length} 个文件`);
+			    console.log(`- 服务器存储数组: ${storageArray.length} 个FID`);
+			    
+			    // 检查每个文件的FID
+			    fileList.forEach((file, index) => {
+			      const hasFID = !!file.FID;
+			      const status = hasFID ? '✅ 已上传到服务器 (有FID)' : '❌ 未上传到服务器 (无FID)';
+			      console.log(`  文件${index + 1}: ${status}${file.FID ? `, FID: ${file.FID}` : ''}`);
+			    });
+			    
+			    // 检查存储数组的FID
+			    storageArray.forEach((item, index) => {
+			      console.log(`  存储${index + 1}: ${item.FID ? `✅ FID: ${item.FID}` : '❌ FID为空'}`);
+			    });
+			    
+			    // 验证一致性
+			    if (fileList.length !== storageArray.length) {
+			      console.log(`⚠️ 警告: 本地文件数量(${fileList.length})与服务器FID数量(${storageArray.length})不一致`);
+			    }
+			    
+			    return fileList.every(f => f.FID) && storageArray.every(s => s.FID);
+			  };
+			  
+			  // 验证所有附件
+			  console.log('\n2. 各类型附件验证详情:');
+			  const productImgStatus = checkFileUploadStatus('产品图片', this.fileList1, this.prodImg);
+			  const errorImgStatus = checkFileUploadStatus('故障图片', this.fileList4, this.errImg);
+			  const videoStatus = checkFileUploadStatus('故障视频', this.fileList5, this.video);
+			  const purchaseProofStatus = checkFileUploadStatus('购买凭证', this.fileList6, this.previewData);
+			  
+			  console.log('\n3. 附件上传汇总:');
+			  console.log(`产品图片: ${productImgStatus ? '✅ 已全部上传' : '❌ 未全部上传'}`);
+			  console.log(`故障图片: ${errorImgStatus ? '✅ 已全部上传' : '❌ 未全部上传'}`);
+			  console.log(`故障视频: ${videoStatus ? '✅ 已全部上传' : '❌ 未全部上传'}`);
+			  console.log(`购买凭证: ${purchaseProofStatus ? '✅ 已全部上传' : '❌ 未全部上传'}`);
+			  
+			  console.log('\n4. 提交前附件FID数组:');
+			  console.log('产品图片FID:', this.prodImg.map(p => p.FID));
+			  console.log('故障图片FID:', this.errImg.map(e => e.FID));
+			  console.log('故障视频FID:', this.video.map(v => v.FID));
+			  console.log('购买凭证FID:', this.previewData.map(p => p.FID));
+			  
+			  // 合并后的FileFIDS（这是实际提交给服务器的）
+			  const allFIDs = [
+			    ...this.prodImg,      // 产品图片
+			    ...this.previewData,  // 购买凭证
+			    ...this.errImg,       // 故障图片
+			    ...this.video         // 故障视频
+			  ];
+			  
+			  console.log('\n5. 即将提交给服务器的FileFIDS:');
+			  console.log(`总FID数量: ${allFIDs.length}`);
+			  console.log('FID列表:', allFIDs.map(item => item.FID));
+			  
+			  const validFIDCount = allFIDs.filter(item => item.FID).length;
+			  console.log(`有效FID数量: ${validFIDCount}/${allFIDs.length}`);
+			  
+			  if (allFIDs.length > 0 && validFIDCount === 0) {
+			    console.log('⚠️ 警告: 有附件文件但没有有效的FID，可能未上传到服务器！');
+			  }
+			  // ========== 调试信息结束 ==========
+			  
+			  this.show5 = false;
+			  if (this.isUpdate) {
+			    return
+			  }
+			  let flag = true
+			  this.$refs.choosecmp.forEach(item => {
+			    if (!item.formData.FPRODUCTNAME) {
+			      flag = false
+			    }
+			  })
+			  let flag4 = true
+			  if (this.status == 'Service_station') {
+			    this.$refs.choosecmp.forEach(item => {
+			      if (!item.formData.FORDERNO) {
+			        flag4 = false
+			      }
+			    })
+			  }
+			  if (this.documentType == 'B') {
+			
+			    let text = '';
+			    if (!flag) {
+			      text = '请选择产品名称'
+			    }
+			
+			    if (!flag4) {
+			      text = '请输入订货号'
+			    }
+			
+			    if (!this.formData.F_USERREMAERK) {
+			      text = '请填写联系人'
+			    }
+			    if (!this.formData.FDRIVERPHONE) {
+			      text = '请填写联系人电话'
+			    }
+			
+			    if (this.formData.FPURCHASEDATA == '' && this.customInfo == 'after') {
+			      text = '请填写购买日期'
+			    }
+			    if (this.formData.FVEHICLEPURPOSE == '') {
+			      text = '请选择车辆用途'
+			    }
+			    if (this.formData.FERRDATE == '') {
+			      text = '请填写故障时间'
+			    }
+			    if (this.formData.FGUZHANINFO == '') {
+			      text = '请填写故障描述'
+			    }
+			    // && this.customInfo == 'after'
+			    if (this.previewData.length == 0) {
+			      text = '请上传购买凭证'
+			      this.previewUrl.splice(0)
+			      this.fileList6.splice(0)
+			    }
+			
+			    if (this.radiovalue1 == '上门维修' && this.formData.FREPAIRSITE == '') {
+			      text = '请填写故障地点'
+			    }
+			    let text2 = text
+			    if (this.status == 'Service_station') {
+			      if (this.serviceCheck() !== '') {
+			        text = this.serviceCheck()
+			      }
+			      if (this.F_tesu_text == '') {
+			        text = '请填写厂家信息'
+			      }
+			    }
+			    if (this.Fproductclass == '') {
+			      text = '请选择使用类别'
+			    }
+			    if (this.producIndex !== '2' && !this.formData.FPOWERNUMBER && this.status == 'Service_station') {
+			      text = '请输入发动机编号'
+			    }
+			    //售后 其他类别时，必填
+			    if (!this.formData.F_DRIVINGCOM_H && this.customInfo == 'after' && this.producIndex !== '1' && this.producIndex !== '2') {
+			      text = this.carType > 1 ? '请填写运转时长' : '请填写行驶里程'
+			    }
+			    // 配件或零售发动机时：显示行驶里程(carType<=1)则必填，显示运转时长(carType>1)则非必填
+			    if (!this.formData.F_DRIVINGCOM_H && this.customInfo == 'after' && (this.producIndex == '1' || this.producIndex == '2') && this.carType <= 1) {
+			      text = '请填写行驶里程'
+			    }
+			    // 数据验证：其他类别时，验证数据合法性
+			    if ((parseFloat(this.formData.F_DRIVINGCOM_H).toString() == "NaN" || !this.formData
+			        .F_DRIVINGCOM_H) && this.customInfo == 'after' && this.producIndex !== '1' && this.producIndex !== '2') {
+			      uni.showToast({
+			        icon: 'none',
+			        title: this.carType > 1 ? '运转时长' : '行驶里程' + '，数据非法或为空！'
+			      })
+			      return
+			    }
+			    // 数据验证：配件或零售发动机且显示行驶里程时，验证数据合法性
+			    if ((parseFloat(this.formData.F_DRIVINGCOM_H).toString() == "NaN" || !this.formData
+			        .F_DRIVINGCOM_H) && this.customInfo == 'after' && (this.producIndex == '1' || this.producIndex == '2') && this.carType <= 1) {
+			      uni.showToast({
+			        icon: 'none',
+			        title: '行驶里程，数据非法或为空！'
+			      })
+			      return
+			    }
+			
+			    if (this.FRCHECKHOME !== '0' && this.FRCHECKHOME !== '1') { //'到服务站维修'
+			      text = '请选择服务方式'
+			    }
+			    if (text !== '') {
+			      uni.showToast({
+			        icon: 'none',
+			        title: text
+			      })
+			      this.show5 = false
+			      return
+			    }
+			
+			  }
+			  const arr = this.getprodArr();
+			  console.log("报修提交数据，arr--", arr)
+			
+			  if (arr[1] > 0) {
+			    this.show5 = false
+			    return //判断产品信息是否完整
+			  }
+			
+			  if (this.FRCHECKHOME == '0') { //'到服务站维修'
+			    this.formData.FREPAIRSITE = '';
+			  }
+			
+			  if (this.status == 'Customer') {
+			    if (this.FRCHECKHOME == '1') { //'上门维修'  
+			      this.formData.FSERVICESTATION = '';
+			      this.FSERVICESTATIONnumber = '';
+			    }
+			  }
+			
+			  // return;
+			  uni.showLoading({
+			    title: '正在保存'
+			  });
+			  let obj = {
+			    ...this.formData
+			  }
+			  
+			  // 调试：显示实际提交的FileFIDS
+			  console.log('\n6. 最终提交数据中的FileFIDS验证:');
+			  obj.FileFIDS = [
+			    ...this.prodImg,      // 产品图片
+			    ...this.previewData,  // 购买凭证
+			    ...this.errImg,       // 故障图片
+			    ...this.video         // 故障视频
+			  ]
+			  console.log('提交的FileFIDS:', obj.FileFIDS);
+			  console.log('FileFIDS总数:', obj.FileFIDS.length);
+			  console.log('有效的FID数量:', obj.FileFIDS.filter(item => item.FID).length);
+			  
+			  obj.FSERVICESTATION = this.FSERVICESTATIONnumber
+			  obj.FVEHICLEPURPOSE = this.SelectAssistantDataListnumber
+			  obj.FileFIDS.splice(0)
+			
+			  obj.FileFIDS.push(...this.prodImg, ...this.previewData, ...this.errImg.concat(this.video))
+			
+			  let type = uni.getStorageSync('customertype')
+			  obj.Fdriver = ''
+			  if (type == 'Customer') {
+			    let Fdriver = uni.getStorageSync('userNumber')
+			    obj.Fdriver = Fdriver
+			  }
+			
+			  obj.FdownSALE = this.customInfo == 'after' ? '2' : '1'
+			  obj.entry = arr[0]
+			  if (this.documentType == 'A') {
+			    obj.FDocumentStatus = 'A'
+			  }
+			  if (this.documentType == 'B') {
+			    obj.FDocumentStatus = 'B'
+			  }
+			
+			  let documentType = this.documentType
+			  obj.Fproductclass = this.producIndex + ''
+			  obj.F_tesu_text = this.F_tesu_text
+			  obj.FRCHECKHOME = this.FRCHECKHOME
+			  obj.FBillNo = ''
+			  this.isUpdate = true
+			
+			
+			  // console.log(1112,this.producIndex,obj)
+			  // return
+			
+			  console.log('\n7. 开始调用InsertREPAIRREPORT接口，提交数据包含:');
+			  console.log(`- FileFIDS: ${obj.FileFIDS.length} 个附件`);
+			  console.log(`- entry: ${obj.entry ? obj.entry.length : 0} 个产品`);
+			  
+			  const res = await this.$Recipe.InsertREPAIRREPORT(obj)
+			  
+			  console.log('\n8. 接口响应结果:');
+			  console.log('接口响应:', res);
+			  console.log('响应msg:', res?.msg);
+			  console.log('响应data:', res?.data);
+			  
+			  this.isUpdate = false
+			  uni.hideLoading()
+			
+			  if (res?.msg == 'Success') {
+			    console.log('✅ 提交成功！');
+			    this.reset()
+			    uni.switchTab({
+			      url: '/pages/tabBar/report/index',
+			      success() {
+			        if (documentType == 'A') {
+			          uni.showToast({
+			            icon: 'none',
+			            title: '保存报修单成功'
+			          })
+			        } else {
+			          uni.showToast({
+			            icon: 'none',
+			            title: '提交报修单成功'
+			          })
+			        }
+			      }
+			    })
+			  } else {
+			    console.log('❌ 提交失败！');
+			    if (documentType == 'A') {
+			      uni.showToast({
+			        icon: 'none',
+			        title: '保存报修单失败,请重试'
+			      })
+			    } else {
+			      uni.showToast({
+			        icon: 'none',
+			        title: '提交报修单失败,请重试'
+			      })
+			    }
+			  }
 			},
 
 			/**

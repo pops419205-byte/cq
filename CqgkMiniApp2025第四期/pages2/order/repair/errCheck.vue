@@ -1062,78 +1062,146 @@
 			/**
 			 * 新增图片
 			 */
+			/**
+			 * 新增图片
+			 */
 			async afterRead(event) {
-				// 当设置 mutiple 为 true 时, file 为数组格式，否则为对象格式
-				let lists = [].concat(event.file)
-				let fileListLen = this[`fileList${event.name}`].length
-				lists.map((item) => {
-					this[`fileList${event.name}`].push({
-						...item,
-						status: 'uploading',
-						message: '上传中'
-					})
-				})
-
-				for (let i = 0; i < lists.length; i++) {
-					const result = await this.uploadFilePromise(lists[i].url, event.name)
-
-					try {
-						JSON.parse(result).data.FID
-					} catch (e) {
-
-						uni.showToast({
-							icon: 'none',
-							title: '文件上传失败'
-						})
-						this[`fileList${event.name}`].splice(fileListLen, 1)
-						return
-						//TODO handle the exception
-					}
-					let item = this[`fileList${event.name}`][fileListLen]
-					this[`fileList${event.name}`].splice(fileListLen, 1, Object.assign(item, {
-						status: 'success',
-						message: '',
-						url: item.url,
-						FID: JSON.parse(result).data.FID
-					}))
-					fileListLen++
-				}
-				if (event.name == '1') {
-					this.ATTACHMENT.splice(0)
-				}
-				if (event.name == '2') {
-					this.CPGZ.splice(0)
-				}
-				if (event.name == '4') {
-					this.JCTP.splice(0)
-				}
-
-				if (event.name == '5') {
-					this.JCSP.splice(0)
-				}
-				if (event.name == '7') {
-					this.SXTP.splice(0)
-				}
-				this[`fileList${event.name}`].forEach(item => {
-					let obj = {
-						"FID": item.FID,
-					}
-					if (event.name == '1') {
-						this.ATTACHMENT.push(obj)
-					}
-					if (event.name == '2') {
-						this.CPGZ.splice(0)
-					}
-					if (event.name == '4') {
-						this.JCTP.push(obj)
-					}
-					if (event.name == '5') {
-						this.JCSP.push(obj)
-					}
-					if (event.name == '7') {
-						this.SXTP.push(obj)
-					}
-				})
+			  // 当设置 mutiple 为 true 时, file 为数组格式，否则为对象格式
+			  let lists = [].concat(event.file)
+			  let fileListLen = this[`fileList${event.name}`].length
+			  
+			  console.log(`========== 开始处理文件上传 ==========`)
+			  console.log(`上传事件:`, event)
+			  console.log(`上传的文件数量:`, lists.length)
+			  console.log(`上传类型: name=${event.name}`)
+			  console.log(`当前fileList${event.name}长度:`, fileListLen)
+			  console.log(`上传的文件列表:`, lists)
+			  console.log(`====================================`)
+			  
+			  lists.map((item) => {
+			    this[`fileList${event.name}`].push({
+			      ...item,
+			      status: 'uploading',
+			      message: '上传中'
+			    })
+			  })
+			
+			  for (let i = 0; i < lists.length; i++) {
+			    console.log(`开始上传第${i+1}/${lists.length}个文件...`)
+			    const result = await this.uploadFilePromise(lists[i].url, event.name)
+			
+			    try {
+			      const parsedResult = JSON.parse(result)
+			      console.log(`第${i+1}个文件上传响应:`, parsedResult)
+			      if (!parsedResult.data.FID) {
+			        throw new Error('响应中没有FID字段')
+			      }
+			    } catch (e) {
+			      console.error(`文件上传失败或解析错误:`, e)
+			      console.error(`原始响应数据:`, result)
+			      
+			      uni.showToast({
+			        icon: 'none',
+			        title: '文件上传失败'
+			      })
+			      this[`fileList${event.name}`].splice(fileListLen, 1)
+			      return
+			    }
+			    
+			    let item = this[`fileList${event.name}`][fileListLen]
+			    const fid = JSON.parse(result).data.FID
+			    this[`fileList${event.name}`].splice(fileListLen, 1, Object.assign(item, {
+			      status: 'success',
+			      message: '',
+			      url: item.url,
+			      FID: fid
+			    }))
+			    
+			    console.log(`第${i+1}个文件上传成功:`, {
+			      原始文件名: lists[i].name || lists[i].fileName || '未命名',
+			      FID: fid,
+			      状态: 'success'
+			    })
+			    
+			    fileListLen++
+			  }
+			  
+			  // 清空对应的数组
+			  console.log(`开始处理对应的文件数组...`)
+			  if (event.name == '1') {
+			    console.log(`清空ATTACHMENT数组 (原长度: ${this.ATTACHMENT.length})`)
+			    this.ATTACHMENT.splice(0)
+			  }
+			  if (event.name == '2') {
+			    console.log(`清空CPGZ数组 (原长度: ${this.CPGZ.length})`)
+			    this.CPGZ.splice(0)
+			  }
+			  if (event.name == '4') {
+			    console.log(`清空JCTP数组 (原长度: ${this.JCTP.length})`)
+			    this.JCTP.splice(0)
+			  }
+			  if (event.name == '5') {
+			    console.log(`清空JCSP数组 (原长度: ${this.JCSP.length})`)
+			    this.JCSP.splice(0)
+			  }
+			  if (event.name == '7') {
+			    console.log(`清空SXTP数组 (原长度: ${this.SXTP.length})`)
+			    this.SXTP.splice(0)
+			  }
+			  
+			  // 重新填充对应的数组
+			  console.log(`重新填充对应的文件数组...`)
+			  this[`fileList${event.name}`].forEach((item, index) => {
+			    let obj = {
+			      "FID": item.FID,
+			    }
+			    if (event.name == '1') {
+			      this.ATTACHMENT.push(obj)
+			      console.log(`添加到ATTACHMENT: FID=${item.FID}, 位置=${index}`)
+			    }
+			    if (event.name == '2') {
+			      this.CPGZ.push(obj)
+			      console.log(`添加到CPGZ: FID=${item.FID}, 位置=${index}`)
+			    }
+			    if (event.name == '4') {
+			      this.JCTP.push(obj)
+			      console.log(`添加到JCTP: FID=${item.FID}, 位置=${index}`)
+			    }
+			    if (event.name == '5') {
+			      this.JCSP.push(obj)
+			      console.log(`添加到JCSP: FID=${item.FID}, 位置=${index}`)
+			    }
+			    if (event.name == '7') {
+			      this.SXTP.push(obj)
+			      console.log(`添加到SXTP: FID=${item.FID}, 位置=${index}`)
+			    }
+			  })
+			  
+			  console.log(`========== 文件上传完成汇总 ==========`)
+			  console.log(`上传类型: event.name=${event.name}`)
+			  console.log(`fileList${event.name}最终状态:`, this[`fileList${event.name}`])
+			  
+			  // 显示所有文件数组的当前状态
+			  const arrayStatus = {
+			    'ATTACHMENT': this.ATTACHMENT,
+			    'CPGZ': this.CPGZ,
+			    'JCTP': this.JCTP,
+			    'JCSP': this.JCSP,
+			    'SXTP': this.SXTP
+			  }
+			  
+			  console.log(`各文件数组状态:`)
+			  Object.keys(arrayStatus).forEach(key => {
+			    console.log(`  ${key}: ${arrayStatus[key].length}个文件`, arrayStatus[key])
+			  })
+			  
+			  console.log(`FileList显示状态:`)
+			  console.log(`  fileList1: ${this.fileList1.length}个文件`)
+			  console.log(`  fileList2: ${this.fileList2.length}个文件`)
+			  console.log(`  fileList4: ${this.fileList4.length}个文件`)
+			  console.log(`  fileList5: ${this.fileList5.length}个文件`)
+			  console.log(`  fileList7: ${this.fileList7.length}个文件`)
+			  console.log(`=====================================`)
 			},
 			/**
 			 * 上传图片方法
