@@ -237,19 +237,21 @@
 						_this.formData.FREPAIRRPTIME = '';
 
 						// 发货人：优先使用单据中的值，如果为空则使用中心库默认联系人
-						_this.formData.FSENDERNAME = (res.data.FSENDERNAME && res.data.FSENDERNAME !== " " && res.data.FSENDERNAME !== '') 
-							? res.data.FSENDERNAME 
-							: (res.data.FSENDER && res.data.FSENDER.Name && res.data.FSENDER.Name[0] && res.data.FSENDER.Name[0].Value 
-								? res.data.FSENDER.Name[0].Value 
-								: '');
+						_this.formData.FSENDERNAME = (res.data.FSENDERNAME && res.data.FSENDERNAME.trim() !== '') 
+						    ? res.data.FSENDERNAME 
+						    : (res.data.FSENDER && res.data.FSENDER.Name && res.data.FSENDER.Name[0] && res.data.FSENDER.Name[0].Value 
+						        ? res.data.FSENDER.Name[0].Value 
+						        : '');
+						
 						// 电话号码：优先使用单据中的值，如果为空则使用中心库默认值
-						_this.formData.FSENDPHONE = (res.data.FSENDPHONE && res.data.FSENDPHONE !== " " && res.data.FSENDPHONE !== '') 
-							? res.data.FSENDPHONE 
-							: (res.data.FSENDER && res.data.FSENDER.TEL ? res.data.FSENDER.TEL : '');
+						_this.formData.FSENDPHONE = (res.data.FSENDPHONE && res.data.FSENDPHONE.trim() !== '') 
+						    ? res.data.FSENDPHONE 
+						    : (res.data.FSENDER && res.data.FSENDER.TEL ? res.data.FSENDER.TEL : '');
+						
 						// 发货地址：优先使用单据中的值，如果为空则使用中心库默认值
-						_this.formData.FSENDADDRESS = (res.data.FSENDADDRESS && res.data.FSENDADDRESS !== " " && res.data.FSENDADDRESS !== '') 
-							? res.data.FSENDADDRESS 
-							: (res.data.FSENDER && res.data.FSENDER.ADDRESS ? res.data.FSENDER.ADDRESS : '');
+						_this.formData.FSENDADDRESS = (res.data.FSENDADDRESS && res.data.FSENDADDRESS.trim() !== '') 
+						    ? res.data.FSENDADDRESS 
+						    : (res.data.FSENDER && res.data.FSENDER.ADDRESS ? res.data.FSENDER.ADDRESS : '');
 
 						_this.formData.FRECEIVERUSER = res.data.FRECEIVERUSER;
 						_this.formData.FRECEIVERTEL = res.data.FRECEIVERTEL;
