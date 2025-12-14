@@ -198,7 +198,17 @@
 			const res2 = await this.$Recipe.changeProdcInfo1({
 				FBillNo: this.info.FBillNo
 			});
-			console.log('changeProdcInfo1 返回：', res2);
+			console.log('【接口 changeProdcInfo1 完整返回】', res2);
+			console.log('【Prodcuts】', res2?.data?.Prodcuts);
+			
+			if (Array.isArray(res2?.data?.Prodcuts)) {
+			  const other = res2.data.Prodcuts.find(p => 
+			    p.F_ASSISTANT === '其他配件' || 
+			    p.Fnumber === 'OTHER' ||
+			    p.name === '其他配件'
+			  );
+			  console.log('【其他配件-接口原始数据】', other);
+			}
 			if (res2.data !== '') {
 				//新增  
 				prodList = res2.data.Prodcuts;
@@ -214,13 +224,24 @@
 					})
 
 				})
+				console.log('【处理后的 prodList】', prodList);
+				
+				const other2 = prodList.find(p =>
+				  p.F_ASSISTANT === '其他配件' ||
+				  p.Fnumber === 'OTHER' ||
+				  p.name === '其他配件'
+				);
+				console.log('【处理后-其他配件】', other2);
 			} else {
 				this.isEdit = true;
 				// 修改
 				const res = await this.$Recipe.changeProdcInfo({
 					FBillNo: this.info.FWORKORDERNO1
 				})
-				console.log('changeProdcInfo 返回：', res);
+				console.log('【接口 changeProdcInfo 完整返回】', res);
+				console.log('【Prodcuts-修改】', res?.data?.Prodcuts);
+				const otherEdit = res?.data?.Prodcuts?.find(p => p.F_ASSISTANT === '其他配件' || p.Fnumber === 'OTHER' || p.name === '其他配件');
+                console.log('【修改分支-其他配件】', otherEdit);
 				prodList = res.data.Prodcuts;
 				console.log('走修改分支 prodList：', prodList);
 				prodList.map((item, index) => {

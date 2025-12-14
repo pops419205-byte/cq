@@ -300,11 +300,20 @@
 				})
 			},
 			_initTree(range = this.range){
-				this.treeList = [];
-				this._renderTreeList(range);
-				this.$nextTick(() => {
-					this._defaultSelect(range)
-				})
+			  this.treeList = [];
+			  this._renderTreeList(range);
+			
+			  this.treeList.forEach(item => {
+			    if (!item.lastRank) {
+			      item.showChild = true
+			      item.open = true
+			    }
+			    item.show = true
+			  })
+			
+			  this.$nextTick(() => {
+			    this._defaultSelect(range)
+			  })
 			}
 		},
 		watch: {

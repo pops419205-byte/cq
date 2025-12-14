@@ -98,15 +98,12 @@
 				this.index=obj.index;
 				this.index2=obj.index2;
 				this.index3=obj.index3
-				let findIndex = 0;
-				if (obj.Fnumber != '') {
-					this.tree.forEach((item, index) => {
-						 
-						if (item.Fname == obj.Fnumber) {
-							findIndex = index
-						}
-					})
-					this.tree = this.tree.splice(findIndex, 1)
+				if (obj.Fnumber) {
+				  const target = this.tree.find(item => item.Fname === obj.Fnumber)
+				  if (target) {
+					target.open = true
+				    this.tree = [target]
+				  }
 				}
 				let arr3 = []
 				this.tree.forEach((item, index) => {

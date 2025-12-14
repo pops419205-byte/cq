@@ -191,83 +191,83 @@
 				
 				this.show = false
 			},
-			init(){ 
-				let _this = this ;
-				let data = {
-					FNUMBER:_this.FWORDERNO
-					// FNUMBER:'HJ001'
-				}  
-				_this.$Recipe.GetSendByFnumber(data).then((res) => {
-					console.log('data',res) 
-					// 详细打印接口返回值，特别是发货人相关字段
-                    console.log('=========== 接口返回值详细分析 ===========');
-                    console.log('完整的res.data:', JSON.stringify(res.data, null, 2));
-                    console.log('发货人字段 FSENDERNAME:', res.data.FSENDERNAME);
-                    console.log('发货人字段类型:', typeof res.data.FSENDERNAME);
-                    console.log('发货人字段是否为空:', res.data.FSENDERNAME === '' || res.data.FSENDERNAME === ' ' || res.data.FSENDERNAME === null || res.data.FSENDERNAME === undefined);
-                    console.log('电话号码字段 FSENDPHONE:', res.data.FSENDPHONE);
-                    console.log('发货地址字段 FSENDADDRESS:', res.data.FSENDADDRESS);
-                    console.log('中心库信息 FSENDER:', res.data.FSENDER);
-                    if (res.data.FSENDER) {
-                        console.log('中心库名称:', res.data.FSENDER.Name);
-                        console.log('中心库电话:', res.data.FSENDER.TEL);
-                        console.log('中心库地址:', res.data.FSENDER.ADDRESS);
-                    }
-                    console.log('======================================');
-        
-					_this.info = res.data  
-					
-					_this.formData.FWLDH = res.data.FWLDH
-					_this.formData.FWLGS = res.data.FWLGS
-					_this.formData.FFREIGHT = res.data.FFREIGHT
-					// _this.formData.FREPAIRRPTIME = res.data.FREPAIRRPTIME
-					_this.formData.FREPAIRRPTIME = '';
-					
-					console.log('=========== 赋值逻辑分析 ===========');
-					console.log('原始 FSENDERNAME:', res.data.FSENDERNAME);
-					console.log('处理后 FSENDERNAME:', res.data.FSENDERNAME == " " ? '' : res.data.FSENDERNAME);
-					_this.formData.FSENDERNAME  = res.data.FSENDERNAME==" "?'':res.data.FSENDERNAME;
-					// 电话号码：优先使用单据中的值，如果为空则使用中心库默认值
-					console.log('原始 FSENDPHONE:', res.data.FSENDPHONE);
-					console.log('是否为空判断:', (res.data.FSENDPHONE && res.data.FSENDPHONE !== " " && res.data.FSENDPHONE !== ''));
-					console.log('中心库电话:', res.data.FSENDER && res.data.FSENDER.TEL ? res.data.FSENDER.TEL : '无');
-					_this.formData.FSENDPHONE = (res.data.FSENDPHONE && res.data.FSENDPHONE !== " " && res.data.FSENDPHONE !== '') 
-						? res.data.FSENDPHONE 
-						: (res.data.FSENDER && res.data.FSENDER.TEL ? res.data.FSENDER.TEL : '');
-					// 发货地址：优先使用单据中的值，如果为空则使用中心库默认值
-					console.log('原始 FSENDADDRESS:', res.data.FSENDADDRESS);
-					console.log('是否为空判断:', (res.data.FSENDADDRESS && res.data.FSENDADDRESS !== " " && res.data.FSENDADDRESS !== ''));
-					console.log('中心库地址:', res.data.FSENDER && res.data.FSENDER.ADDRESS ? res.data.FSENDER.ADDRESS : '无');
-					_this.formData.FSENDADDRESS = (res.data.FSENDADDRESS && res.data.FSENDADDRESS !== " " && res.data.FSENDADDRESS !== '') 
-						? res.data.FSENDADDRESS 
-						: (res.data.FSENDER && res.data.FSENDER.ADDRESS ? res.data.FSENDER.ADDRESS : '');
-					console.log('最终赋值结果:');
-					console.log('formData.FSENDERNAME:', _this.formData.FSENDERNAME);
-					console.log('formData.FSENDPHONE:', _this.formData.FSENDPHONE);
-					console.log('formData.FSENDADDRESS:', _this.formData.FSENDADDRESS);
-					console.log('======================================');
-					
-					_this.formData.FRECEIVERUSER= res.data.FRECEIVERUSER;
-					_this.formData.FRECEIVERTEL = res.data.FRECEIVERTEL;
-					_this.formData.FWORDERSTATUS= res.data.FWORDERSTATUS;
-					 
-					
-					_this.sendType = _this.getSendType( res.data.FWORDERSTATUS ) 
-					//新配件编号 entry
-					let entry = res.data.FEntity
-					entry.map((item,index) => { 
-						if(item.FNEWSOURCECHECK){
-							let FNEWNUMBER = item.FNEWNUMBER;
-							if(_this.tabIndex == 1){
-								FNEWNUMBER = ''
-							}
-							_this.entry.push({ 
-								id: item.Id,
-								FNEWNUMBER :  FNEWNUMBER,
-							})	 
-						}						 
-					})  
-				})
+			init() {
+			  let _this = this;
+			
+			  const isBlank = (val) => {
+			    return val === null || val === undefined || String(val).trim() === '';
+			  };
+			  const isValidPhone = (val) => {
+			    return /^1[3-9]\d{9}$/.test(String(val));
+			  };
+			
+			  let data = {
+			    FNUMBER: _this.FWORDERNO
+			  };
+			
+			  _this.$Recipe.GetSendByFnumber(data).then((res) => {
+			    console.log('=========== 接口返回值 ==========');
+			    console.log(JSON.stringify(res.data, null, 2));
+			
+			    const d = res.data || {};
+			    const sender = d.FSENDER || {};
+			
+			    // 主数据
+			    _this.info = d;
+			
+			    _this.formData.FWLDH = isBlank(d.FWLDH) ? '' : d.FWLDH.trim();
+			    _this.formData.FWLGS = isBlank(d.FWLGS) ? '' : d.FWLGS.trim();
+			    _this.formData.FFREIGHT = d.FFREIGHT || 0;
+			    _this.formData.FREPAIRRPTIME = ''; // 强制重新选择
+			
+			    /* =======================
+			       二、发货信息（核心修复）
+			    ======================= */
+			
+			    // 发货人：单据 → 中心库
+			    _this.formData.FSENDERNAME = !isBlank(d.FSENDERNAME)
+			      ? d.FSENDERNAME.trim()
+			      : (sender?.Name?.[0]?.Value || '');
+			
+			    // 发货电话：合法手机号 → 中心库电话
+			    if (isValidPhone(d.FSENDPHONE)) {
+			      _this.formData.FSENDPHONE = d.FSENDPHONE;
+			    } else {
+			      _this.formData.FSENDPHONE = sender?.TEL || '';
+			    }
+			
+			    // 发货地址：单据 → 中心库
+			    _this.formData.FSENDADDRESS = !isBlank(d.FSENDADDRESS)
+			      ? d.FSENDADDRESS.trim()
+			      : (sender?.ADDRESS || '');
+			
+			    
+			    _this.formData.FRECEIVERUSER = isBlank(d.FRECEIVERUSER) ? '' : d.FRECEIVERUSER.trim();
+			    _this.formData.FRECEIVERTEL = isBlank(d.FRECEIVERTEL) ? '' : d.FRECEIVERTEL.trim();
+			    _this.formData.FWORDERSTATUS = d.FWORDERSTATUS;
+			
+			    // 发货类型文字
+			    _this.sendType = _this.getSendType(d.FWORDERSTATUS);
+
+			    _this.entry = [];
+			    (d.FEntity || []).forEach((item) => {
+			      if (item.FNEWSOURCECHECK) {
+			        let num = isBlank(item.FNEWNUMBER) ? '' : item.FNEWNUMBER.trim();
+			        if (_this.tabIndex == 1) {
+			          num = '';
+			        }
+			        _this.entry.push({
+			          id: item.Id,
+			          FNEWNUMBER: num
+			        });
+			      }
+			    });
+			    console.log('=========== 发货信息最终值 ==========');
+			    console.log('发货人:', _this.formData.FSENDERNAME);
+			    console.log('发货电话:', _this.formData.FSENDPHONE);
+			    console.log('发货地址:', _this.formData.FSENDADDRESS);
+			    console.log('===================================');
+			  });
 			},
 			 
             addBtn(){
