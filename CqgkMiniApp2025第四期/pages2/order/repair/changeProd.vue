@@ -619,7 +619,7 @@
 					    if (this.stype == 'B' && hasSpecialRepair) {
 					      // 跳转到维修情况页面
 					      uni.navigateTo({
-					        url: `/pages2/order/repair/situation?FBillNo=${this.info.FBillNo}&FID=${this.allInfo.FID || ''}&FWORKORDERNO1=${this.value}`
+					        url:`/pages2/order/repair/situation?FBillNo=${this.info.FBillNo}&FID=${this.info.FID || this.allInfo.FID || ''}&FWORKORDERNO1=${this.value}`
 					      });
 					      
 					      uni.showToast({
