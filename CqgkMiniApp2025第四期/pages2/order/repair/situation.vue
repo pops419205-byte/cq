@@ -247,6 +247,10 @@
 					const result = await this.$Recipe.changeProdcInfo({
 						FBillNo:FWORKORDERNO1
 					});
+					console.log('========== 接口返回的原始数据 ==========');
+					console.log('完整返回数据:', JSON.stringify(result, null, 2));
+					console.log('产品列表数据:', JSON.stringify(result.data.Prodcuts, null, 2));
+					console.log('=========================================');
 					const list = result.data.Prodcuts;
 					
 					this.$nextTick(()=>{     

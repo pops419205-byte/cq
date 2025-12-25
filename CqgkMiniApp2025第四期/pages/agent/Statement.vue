@@ -115,7 +115,7 @@
 				}
 				let value =  Number.parseFloat(arr[0][field])
 				console.log(value,'value')
-				
+				console.log(`字段${field}的值:`, value, '原始值:', arr[0][field])
 				if(isNaN(value)){
 					return '0.00'
 				}
@@ -132,10 +132,14 @@
 					supplier:[uni.getStorageSync('userNumber')],
 					year: this.formData.time
 				}  
-				
+				console.log('账款查询请求参数:', data);
+				console.log('supplier:', data.supplier);
+				console.log('year:', data.year);
 				
 				
 				_this.$Recipe.QueryAssistactBalance(data).then((res) => {
+					console.log('完整返回数据:', res.data.data);
+					console.log('balance字段值:', res.data.data[0].balance);
 					_this.info = res.data.data
 					// _this.WEIFU = 0
 				})

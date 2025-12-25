@@ -215,10 +215,13 @@
 			})
 			this.priceList = result.data.map(item => {
 				let str = item.FREPAIRITEM;
-				let arr = str.split("-");
-				let itemType = arr[0];
-				if (itemType !== 'H' && itemType !== 'P' && itemType !== 'G') {
-					itemType = 'A'
+				let itemType = 'A'; // 默认其他
+				    
+				// 判断是否包含关键词
+				if (str.includes('机械产品')) {
+				    itemType = 'M'; // Mechanical
+				} else if (str.includes('共轨产品')) {
+				    itemType = 'C'; 
 				}
 				item.itemType = itemType;
 				//默认选中
@@ -253,8 +256,6 @@
 					if (item.FID == 114477 || item.FID == 114497 || item.FID == 114514) {
 						FQTY = that.FDISTANCE ? that.FDISTANCE : 1
 					}
-					//114477 114497 114514
-					console.log("treeconfirm--", this.service)
 					this.service.push({
 						name: item.FREPAIRITEM,
 						mark: item.FREMARK,
@@ -267,7 +268,7 @@
 					})
 				})
 			},
-
+		
 			/**
 			 * 修改数量 展开
 			 */
@@ -278,6 +279,7 @@
 				this.showModal = true
 				this.indexTag = index
 			},
+			
 			/**
 			 * 修改单价 展开
 			 */
@@ -288,7 +290,7 @@
 				this.showModal = true
 				this.indexTag = index
 			},
-
+		
 			/**
 			 * 修改备注
 			 */
@@ -302,35 +304,40 @@
 				this.showModal = true
 				this.indexTag = index
 			},
+			
 			/**
-			 * 确定点击
+			 * 确定点击 - 精简调试
 			 */
 			confirmModel() {
 				let index = this.indexTag;
+				
 				if (this.tag == 1) {
 					this.content = parseFloat(this.content) ? parseFloat(this.content) : 1
 					this.service[index].FQTY = this.content
 					this.service[index].FAMOUNT = this.getTotal(index);
+					console.log(`修改数量后: 数量=${this.content}, 单价=${this.service[index].price}, 金额=${this.service[index].FAMOUNT}`);
 				}
+				
 				if (this.tag == 2) {
 					this.service[index].newMark = this.newMark
 				}
+				
 				if (this.tag == 3) {
 					this.service[index].FAMOUNT = parseFloat(this.content);
 				}
+				
 				this.showModal = false
-				// console.log(111,this.service)
 			},
-
+		
 			/**
 			 * 单行总价
 			 */
-			getTotal(index) {
-				console.log("getTotal,this.service--", this.service)
-				let num = this.service[index].FQTY;
-				let price = parseFloat(this.service[index].price);
+			getTotal(idx) {
+				let num = this.service[idx].FQTY;
+				let price = parseFloat(this.service[idx].price);
 				return num * price
 			},
+			
 			/**
 			 * 添加维修表格行
 			 */
@@ -342,35 +349,41 @@
 					isDis: false
 				})
 			},
+			
 			/**
 			 * 添加服务费行
 			 */
 			addService() {
 				this.$refs.tkitree._show()
 			},
+			
 			/**
-			 * 获取服务费表格小计
+			 * 获取服务费表格小计 - 精简调试
 			 */
 			getPrice() {
+				console.log('\n========== 计算小计 ==========');
 				let total = 0
-				this.service.forEach(item => {
-					//console.log(item.FAMOUNT,item.FQTY)
+				this.service.forEach((item, idx) => {
 					if (!parseFloat(item.FAMOUNT) || !parseFloat(item.FQTY)) {
 						return
 					}
 					let price = parseFloat(item.price);
 					if (price == 0) {
 						total += parseFloat(item.FAMOUNT)
+						console.log(`项目${idx+1}: 数量=${item.FQTY}, 单价=0(手动), 金额=${item.FAMOUNT}`);
 					} else {
 						let num = item.FQTY;
 						let FAMOUNT = num * price
 						total += FAMOUNT
+						console.log(`项目${idx+1}: 数量=${num}, 单价=${price}, 金额=${FAMOUNT}`);
 					}
-
 				})
 				this.total = total
+				console.log(`小计总额: ${total}`);
+				console.log('==============================\n');
 				return total
 			},
+			
 			/**
 			 * 维修费表格小计
 			 */
@@ -388,18 +401,17 @@
 						let FAMOUNT = num * price
 						total += FAMOUNT
 					}
-
-					// total +=  item.FAMOUNT
 				})
 				this.total = total
 				return total
 			},
+			
 			/**
 			 * 提交费用
 			 */
 			async submit() {
-
-				console.log(this.service, this.total)
+				console.log('\n========== 提交数据 ==========');
+				
 				if (this.total <= 0) {
 					uni.showToast({
 						icon: 'none',
@@ -407,21 +419,25 @@
 					})
 					return
 				} else {
-
-
-					let arr = this.service.map(item => {
+					let arr = this.service.map((item, idx) => {
 						let ppp = parseFloat(item.price);
 						let FAMOUNT = ppp == 0 ? item.FAMOUNT : ppp * item.FQTY
+						
+						console.log(`项目${idx+1}: FQTY=${item.FQTY}, 单价=${ppp}, 提交金额=${FAMOUNT}`);
+						
 						return {
 							FID: item.FID,
 							FREMARK: item.newMark ? item.newMark : item.mark,
 							FPROPOSALPRICE: item.price,
 							type: '1',
 							FQTY: item.FQTY,
-							price: item.FAMOUNT,
+							price: item.price,
 							FAMOUNT: FAMOUNT,
 						}
 					})
+					
+					console.log('==============================\n');
+					
 					if (arr.length == 0 || this.fileList7.length <= 0) {
 						this.showModel = false
 						uni.showToast({
@@ -429,27 +445,20 @@
 							title: '无维修费用项目或未上传维修附件！'
 						})
 						return
-						arr = [{
-							FID: 0,
-							FREMARK: 0,
-							FPROPOSALPRICE: 0,
-							type: '1',
-							FQTY: 0,
-							price: 0,
-							FAMOUNT: 0
-						}]
 					}
+					
 					let obj = {
 						repairList: arr,
 						FBillNo: this.FBillNo,
 						FID: this.FID,
 						FileFIDS: [...this.handle]
 					}
+					
 					this.showModel = false
-					console.log("提交维修费用，", obj)
-					// return
+					
 					let res = await this.$Recipe.UpdateRepairOrder(obj)
 					console.log("维修费用提交回传，res--", res)
+					
 					if (res.code == 200) {
 						uni.navigateBack({
 							delta: 1,
@@ -467,9 +476,8 @@
 						})
 					}
 				}
-
 			},
-
+		
 			/**
 			 * 删除图片
 			 */
@@ -480,12 +488,11 @@
 					FID: event.file.FID
 				})
 			},
-
+		
 			/**
 			 * 新增图片
 			 */
 			async afterRead(event) {
-				// 当设置 mutiple 为 true 时, file 为数组格式，否则为对象格式
 				let lists = [].concat(event.file)
 				let fileListLen = this[`fileList${event.name}`].length
 				lists.map((item) => {
@@ -495,10 +502,10 @@
 						message: '上传中'
 					})
 				})
-
+		
 				for (let i = 0; i < lists.length; i++) {
 					const result = await this.uploadFilePromise(lists[i].url, event.name)
-
+		
 					try {
 						JSON.parse(result).data.FID
 					} catch (e) {
@@ -526,7 +533,7 @@
 					this.handle.push(obj)
 				})
 			},
-
+		
 			/**
 			 * 上传图片方法
 			 */
@@ -552,8 +559,8 @@
 						}
 					});
 				})
-
 			},
+			
 			numberChaneg(price, index) {
 				console.log(price, index)
 			}

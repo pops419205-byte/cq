@@ -132,12 +132,19 @@
 					supplier:[uni.getStorageSync('userNumber')],
 					year: this.formData.time
 				} 
-				
+				console.log('账款查询请求参数:', data);
 				
 				
 				_this.$Recipe.QueryAssistactBalance(data).then((res) => {
+					console.log('完整返回:', res);
+					console.log('res.data:', res.data);
+					console.log('res.data.data:', res.data.data);
+					console.log('是否为数组:', Array.isArray(res.data.data));
+					console.log('数组长度:', res.data.data?.length);
 					_this.info = res.data.data
+					console.log('赋值后 this.info:', _this.info);
 					// _this.WEIFU = 0
+					
 				})
 				
 				return
@@ -154,9 +161,11 @@
 					FDocumentStatus:'C',
 					time:this.formData.time
 				}  
+				// console.log('结算单列表请求参数:', data);
 				uni.showLoading({ title: '加载中' }); 
 				_this.list = [];
 				_this.$Recipe.CenterSettlementAll(data).then((res) => { 
+					// console.log('结算单列表返回数据:', res);
 					_this.list = res.data   
 					uni.hideLoading(); 
 				})

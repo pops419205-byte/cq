@@ -114,9 +114,9 @@
 				showTree: false,
 				treeList: [],
 				selectIndex: -1,
-				listaa: ['H系列', 'P系列','G系列'], //状态列表
+				listaa: ['机械产品', '共轨产品'], //状态列表
 				curindex: 0, //当前状态
-				curName: 'H', //当前状态
+				curName: 'M', //当前状态 (M代表机械产品)
 			}
 		},
 		computed: {},
@@ -126,9 +126,8 @@
 					return
 				}
 				this.curindex = index
-				if(this.curindex == 0)this.curName = 'H'
-				if(this.curindex == 1)this.curName = 'P'
-				if(this.curindex == 2)this.curName = 'G'
+				if(this.curindex == 0)this.curName = 'M' // 机械产品
+				if(this.curindex == 1)this.curName = 'C' // 共轨产品
 			},
 			_show() {
 				this.showTree = true

@@ -67,13 +67,17 @@
 			if (obj.type == 'reply') {
 				console.log("reply");
 				res = await this.$Recipe.SelectAssistantTree()
+				console.log('【SelectAssistantTree完整返回】', res)
+				console.log('【SelectAssistantTree返回的data】', res.data)
 
 			} else {
 				res = await this.$Recipe.newTreeList()
+				console.log('【newTreeList完整返回】', res)
 			}
 			
 
 			this.tree = res.data
+			console.log('【赋值后的tree】', this.tree)
 			let arr3 = []
 			this.tree.forEach((item, index) => {
 				item.id = item.FID
@@ -100,9 +104,12 @@
 				this.index3=obj.index3
 				if (obj.Fnumber) {
 				  const target = this.tree.find(item => item.Fname === obj.Fnumber)
+				   console.log('【查找的Fnumber】', obj.Fnumber)
+				   console.log('【找到的target】', target)
 				  if (target) {
 					target.open = true
 				    this.tree = [target]
+					console.log('【过滤后的tree】', this.tree)
 				  }
 				}
 				let arr3 = []
@@ -153,8 +160,10 @@
 			}
 			this.message = obj.forderno 
 			this.arr = result.data
-			 
+			console.log('【所有配件名称arr】', this.arr)
+			console.log('【arr数组长度】', this.arr.length)
 			this.showlist = [...result.data].slice(0, 10)
+			console.log('【默认显示的前10条showlist】', this.showlist)
 		},
 		methods: {
 			/**
